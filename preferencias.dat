@@ -1,10 +1,10 @@
 #Preferencias de Carreras
-#Fri Oct 02 20:08:39 CST 2026
-dificultad=NORMAL
-modalidad=EQUIPO_VS_PC
+#Fri Oct 02 23:21:36 CST 2026
+dificultad=DIFICIL
+modalidad=CONTRA_PC
 modo=CARRERA
-piloto=Piloto
+piloto=Wily
 piloto2=Piloto 2
 sonido=1
-vehiculo=CARRO
+vehiculo=MOTO
 vehiculo2=MOTO

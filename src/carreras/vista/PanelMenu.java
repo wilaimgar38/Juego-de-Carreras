@@ -27,11 +27,11 @@ import javax.swing.event.DocumentListener;
 public class PanelMenu extends JPanel {
 
     private static final int H_CARDS = 176;
-    private static final int H_OPCION = 46;
-    private static final int H_MODALIDAD = 56;
-    private static final int H_CAMPO = 36;
-    private static final int H_BOTON = 48;
-    private static final int SEPARACION = 34;
+    private static final int H_OPCION = 44;
+    private static final int H_MODALIDAD = 52;
+    private static final int H_CAMPO = 34;
+    private static final int H_BOTON = 46;
+    private static final int SEPARACION = 28;
 
     private final VentanaJuego ventana;
     private final Preferencias preferencias;
@@ -154,10 +154,6 @@ public class PanelMenu extends JPanel {
 
     private void crearTarjetasVehiculo() {
         TipoVehiculo[] tipos = TipoVehiculo.values();
-        int anchoTarjeta = 176;
-        int separacion = 26;
-        int total = tipos.length * anchoTarjeta + (tipos.length - 1) * separacion;
-        int inicio = (Estilos.ANCHO - total) / 2;
         for (int i = 0; i < tipos.length; i++) {
             final TarjetaVehiculo tarjeta = new TarjetaVehiculo(tipos[i]);
             tarjeta.addMouseListener(new MouseAdapter() {
@@ -177,16 +173,12 @@ public class PanelMenu extends JPanel {
                 }
             });
             tarjetas[i] = tarjeta;
-            tarjeta.setBounds(inicio + i * (anchoTarjeta + separacion), yTarjetas, anchoTarjeta, H_CARDS);
             add(tarjeta);
         }
     }
 
     private void crearOpcionesModalidad() {
         Modalidad[] modalidades = Modalidad.values();
-        int ancho = 280;
-        int separacion = 20;
-        int inicio = (Estilos.ANCHO - (ancho * modalidades.length + separacion * (modalidades.length - 1))) / 2;
         for (int i = 0; i < modalidades.length; i++) {
             final Modalidad modalidad = modalidades[i];
             Opcion opcion = new Opcion(modalidad.getEtiqueta(), modalidad.getDescripcion(), new Runnable() {
@@ -197,16 +189,12 @@ public class PanelMenu extends JPanel {
             });
             opcionesModalidad[i] = opcion;
             opcion.addMouseListener(new RatónOpcion(opcion));
-            opcion.setBounds(inicio + i * (ancho + separacion), yModalidad, ancho, H_MODALIDAD);
             add(opcion);
         }
     }
 
     private void crearOpcionesVehiculo2() {
         TipoVehiculo[] tipos = TipoVehiculo.values();
-        int ancho = 240;
-        int separacion = 20;
-        int inicio = (Estilos.ANCHO - (ancho * tipos.length + separacion * (tipos.length - 1))) / 2;
         for (int i = 0; i < tipos.length; i++) {
             final TipoVehiculo tipo = tipos[i];
             Opcion opcion = new Opcion(tipo.getEtiqueta(), tipo.getDescripcion(), new Runnable() {
@@ -217,15 +205,12 @@ public class PanelMenu extends JPanel {
             });
             opcionesVehiculo2[i] = opcion;
             opcion.addMouseListener(new RatónOpcion(opcion));
-            opcion.setBounds(inicio + i * (ancho + separacion), yVehiculo2, ancho, H_OPCION);
             add(opcion);
         }
     }
 
     private void crearOpcionesModo() {
         ModoJuego[] modos = ModoJuego.values();
-        int ancho = 300;
-        int inicio = (Estilos.ANCHO - (ancho * modos.length + 24 * (modos.length - 1))) / 2;
         for (int i = 0; i < modos.length; i++) {
             final ModoJuego modo = modos[i];
             Opcion opcion = new Opcion(modo.getEtiqueta(), modo.getDescripcion(), new Runnable() {
@@ -239,15 +224,12 @@ public class PanelMenu extends JPanel {
             });
             opcionesModo[i] = opcion;
             opcion.addMouseListener(new RatónOpcion(opcion));
-            opcion.setBounds(inicio + i * (ancho + 24), yModo, ancho, H_OPCION);
             add(opcion);
         }
     }
 
     private void crearOpcionesDificultad() {
         Dificultad[] dificultades = Dificultad.values();
-        int ancho = 190;
-        int inicio = (Estilos.ANCHO - (ancho * dificultades.length + 20 * (dificultades.length - 1))) / 2;
         for (int i = 0; i < dificultades.length; i++) {
             final Dificultad dificultad = dificultades[i];
             Opcion opcion = new Opcion(dificultad.getEtiqueta(), dificultad.getDescripcion(), new Runnable() {
@@ -261,57 +243,77 @@ public class PanelMenu extends JPanel {
             });
             opcionesDificultad[i] = opcion;
             opcion.addMouseListener(new RatónOpcion(opcion));
-            opcion.setBounds(inicio + i * (ancho + 20), yDificultad, ancho, H_OPCION);
             add(opcion);
         }
     }
 
     private void reorganizar() {
         boolean duo = modalidadSeleccionada().esDuo();
-        int y = 96;
+        int y = 115; // Mayor espacio tras el título general
+
+        // 1. Tarjetas de Vehículo
         yTarjetas = y;
-        for (TarjetaVehiculo tarjeta : tarjetas) {
-            tarjeta.setBounds(tarjeta.getX(), y, tarjeta.getWidth(), H_CARDS);
+        int anchoTarjeta = 176;
+        int sepTarjetas = 26;
+        int totalTarjetas = tarjetas.length * anchoTarjeta + (tarjetas.length - 1) * sepTarjetas;
+        int inicioTarjetas = (Estilos.ANCHO - totalTarjetas) / 2;
+        for (int i = 0; i < tarjetas.length; i++) {
+            tarjetas[i].setBounds(inicioTarjetas + i * (anchoTarjeta + sepTarjetas), y, anchoTarjeta, H_CARDS);
         }
         y += H_CARDS + SEPARACION;
 
+        // 2. Opciones de Modalidad
         yModalidad = y;
-        for (Opcion opcion : opcionesModalidad) {
-            opcion.setBounds(opcion.getX(), y, opcion.getWidth(), H_MODALIDAD);
+        int anchoMod = 280;
+        int sepMod = 20;
+        int inicioMod = (Estilos.ANCHO - (anchoMod * opcionesModalidad.length + sepMod * (opcionesModalidad.length - 1))) / 2;
+        for (int i = 0; i < opcionesModalidad.length; i++) {
+            opcionesModalidad[i].setBounds(inicioMod + i * (anchoMod + sepMod), y, anchoMod, H_MODALIDAD);
         }
         y += H_MODALIDAD + SEPARACION;
 
+        // 3. Vehículo Jugador 2 (Si aplica)
         yVehiculo2 = y;
-        for (Opcion opcion : opcionesVehiculo2) {
-            opcion.setBounds(opcion.getX(), y, opcion.getWidth(), duo ? H_OPCION : 0);
-            opcion.setVisible(duo);
+        int anchoV2 = 240;
+        int sepV2 = 20;
+        int inicioV2 = (Estilos.ANCHO - (anchoV2 * opcionesVehiculo2.length + sepV2 * (opcionesVehiculo2.length - 1))) / 2;
+        for (int i = 0; i < opcionesVehiculo2.length; i++) {
+            opcionesVehiculo2[i].setBounds(inicioV2 + i * (anchoV2 + sepV2), y, anchoV2, duo ? H_OPCION : 0);
+            opcionesVehiculo2[i].setVisible(duo);
         }
         if (duo) {
             y += H_OPCION + SEPARACION;
         }
 
+        // 4. Modo de Juego
         yModo = y;
-        for (Opcion opcion : opcionesModo) {
-            opcion.setBounds(opcion.getX(), y, opcion.getWidth(), H_OPCION);
+        int anchoModo = 300;
+        int inicioModo = (Estilos.ANCHO - (anchoModo * opcionesModo.length + 24 * (opcionesModo.length - 1))) / 2;
+        for (int i = 0; i < opcionesModo.length; i++) {
+            opcionesModo[i].setBounds(inicioModo + i * (anchoModo + 24), y, anchoModo, H_OPCION);
         }
         y += H_OPCION + SEPARACION;
 
+        // 5. Dificultad
         yDificultad = y;
-        for (Opcion opcion : opcionesDificultad) {
-            opcion.setBounds(opcion.getX(), y, opcion.getWidth(), H_OPCION);
+        int anchoDif = 190;
+        int inicioDif = (Estilos.ANCHO - (anchoDif * opcionesDificultad.length + 20 * (opcionesDificultad.length - 1))) / 2;
+        for (int i = 0; i < opcionesDificultad.length; i++) {
+            opcionesDificultad[i].setBounds(inicioDif + i * (anchoDif + 20), y, anchoDif, H_OPCION);
         }
-        y += H_OPCION + 28;
+        y += H_OPCION + 26;
 
+        // 6. Nombres de Pilotos y Checkbox
         yNombres = y;
         int anchoCampo = duo ? 190 : 240;
-        campoPiloto.setBounds(Estilos.ANCHO / 2 - (duo ? 400 : 260), y, anchoCampo, H_CAMPO);
-        campoPiloto2.setBounds(Estilos.ANCHO / 2 - 195, y, anchoCampo, H_CAMPO);
+        campoPiloto.setBounds(Estilos.ANCHO / 2 - (duo ? 380 : 250), y, anchoCampo, H_CAMPO);
+        campoPiloto2.setBounds(Estilos.ANCHO / 2 - 170, y, anchoCampo, H_CAMPO);
         campoPiloto2.setVisible(duo);
-        casillaSonido.setBounds(Estilos.ANCHO / 2 + 20, y, 220, H_CAMPO);
-        y += H_CAMPO + 18;
+        casillaSonido.setBounds(Estilos.ANCHO / 2 + 40, y, 220, H_CAMPO);
+        y += H_CAMPO + 14;
 
         etiquetaError.setBounds(Estilos.ANCHO / 2 - 260, y, 520, 18);
-        y += 18 + 10;
+        y += 18 + 8;
 
         int anchoBoton = 250;
         botonJugar.setBounds(Estilos.ANCHO / 2 - anchoBoton - 5, y, anchoBoton, H_BOTON);
@@ -453,18 +455,20 @@ public class PanelMenu extends JPanel {
                 g2.fillOval(-120 + i * 260, Estilos.ALTO - 170, 420, 420);
             }
 
-            Estilos.textoCentro(g2, "GRAN RALLY TURBO", Estilos.FUENTE_TITULO, Estilos.TEXTO, getWidth() / 2, 54);
+            // Título principal y subtítulo centrados con posiciones seguras
+            Estilos.textoCentro(g2, "GRAN RALLY TURBO", Estilos.FUENTE_TITULO, Estilos.TEXTO, getWidth() / 2, 45);
             Estilos.textoCentro(g2, "Elige vehiculo, numero de jugadores, duracion y dificultad",
-                    Estilos.FUENTE_SUBTITULO, Estilos.TEXTO_TENUE, getWidth() / 2, 80);
+                    Estilos.FUENTE_SUBTITULO, Estilos.TEXTO_TENUE, getWidth() / 2, 70);
 
-            seccion(g2, "1 - VEHICULO DEL JUGADOR 1", yTarjetas - 10);
-            seccion(g2, "2 - MODO DE JUGADORES", yModalidad - 10);
+            // Etiquetas de sección posicinadas correctamente según sus bloques
+            seccion(g2, "1 - VEHICULO DEL JUGADOR 1", yTarjetas - 12);
+            seccion(g2, "2 - MODO DE JUGADORES", yModalidad - 12);
             if (modalidadSeleccionada().esDuo()) {
-                seccion(g2, "3 - VEHICULO DEL JUGADOR 2", yVehiculo2 - 10);
+                seccion(g2, "3 - VEHICULO DEL JUGADOR 2", yVehiculo2 - 12);
             }
-            seccion(g2, "4 - DURACION DE LA CARRERA", yModo - 10);
-            seccion(g2, "5 - DIFICULTAD", yDificultad - 10);
-            seccion(g2, "6 - NOMBRES DE LOS PILOTOS", yNombres - 10);
+            seccion(g2, "4 - DURACION DE LA CARRERA", yModo - 12);
+            seccion(g2, "5 - DIFICULTAD", yDificultad - 12);
+            seccion(g2, "6 - NOMBRES DE LOS PILOTOS", yNombres - 12);
 
             dibujarMarcador(g2);
             Estilos.textoCentro(g2, "Controles: " + modalidadSeleccionada().getTeclas(),
@@ -698,10 +702,10 @@ public class PanelMenu extends JPanel {
                 g2.setStroke(new BasicStroke(1f));
                 Estilos.textoCentro(g2, titulo.toUpperCase(), Estilos.FUENTE_SECCION,
                         seleccionada ? Estilos.ACENTO : Estilos.TEXTO, getWidth() / 2,
-                        getHeight() >= 54 ? 26 : getHeight() / 2 + 5);
-                if (getHeight() >= 54) {
+                        getHeight() >= 50 ? 24 : getHeight() / 2 + 5);
+                if (getHeight() >= 50) {
                     Estilos.textoCentro(g2, descripcion, Estilos.FUENTE_PEQUENA, Estilos.TEXTO_TENUE,
-                            getWidth() / 2, 46);
+                            getWidth() / 2, 42);
                 }
             } catch (RuntimeException ex) {
                 g2.setColor(Estilos.PELIGRO);
