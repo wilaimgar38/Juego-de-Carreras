@@ -1,0 +1,198 @@
+@startuml ModeloVehiculos
+' Jerarquía de vehículos (herencia + polimorfismo)
+' Fuente de verdad: documentacion/UML.md (sección 2)
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+abstract class Vehiculo {
+  - {static} final int CARRILES = 4
+  # int carril
+  # int carrilObjetivo
+  # double progresoCarril
+  # double velocidad
+  # double salud
+  # double combustible
+  # boolean averiado
+  # int colorBasePersonalizada
+  # int colorDetallePersonalizada
+  --
+  # Vehiculo()
+  # Vehiculo(carrilInicial : int)
+  + actualizarFisica(dt, acelerar, frenar, izquierda, derecha) : void
+  + cambiarCarril(delta : int) : void
+  + irACarril(destino : int) : void
+  + aplicarTinte(colorBase, colorDetalle) : void
+  + tieneTinte() : boolean
+  + limpiarTinte() : void
+  + recibirImpacto(dano : double) : void
+  + recibirRoce(dano : double) : void
+  + recibirCombustible(cantidad : double) : void
+  + colisiona(obstaculo, izquierda, anchoCarril, y, alto) : boolean
+  + tocaRecurso(recurso, izquierda, anchoCarril, y, alto) : boolean
+  + obtenerCentroX(izquierda, anchoCarril) : double
+  + obtenerAnchoPx(anchoCarril) : double
+  + obtenerAltoPx(anchoCarril) : double
+  + obtenerVelocidadRelativa() : double
+  + obtenerSaludRelativa() : double
+  + getCarril() : int
+  + getCarrilObjetivo() : int
+  + setCarril(carril : int) : void
+  + getProgresoCarril() : double
+  + getVelocidad() : double
+  + setVelocidad(velocidad : double) : void
+  + getVelocidadKmh() : double
+  + getSalud() : double
+  + setSalud(salud : double) : void
+  + getCombustible() : double
+  + setCombustible(combustible : double) : void
+  + isAveriado() : boolean
+  + {static} limitarCarrilPublico(valor : int) : int
+  --
+  # actualizarProgresoCarril(dt) : void
+  # {static} limitarCarril(valor : int) : int
+  + {abstract} nombre() : String
+  + {abstract} tipo() : TipoVehiculo
+  + {abstract} anchoRelativo() : double
+  + {abstract} factorAspecto() : double
+  + {abstract} velocidadMaxima() : double
+  + {abstract} aceleracion() : double
+  + {abstract} frenado() : double
+  + {abstract} consumo() : double
+  + {abstract} agilidadCarril() : double
+  + {abstract} saludMaxima() : double
+  + {abstract} colorBase() : int
+  + {abstract} colorDetalle() : int
+}
+
+class Carro {
+  - {static} final int COLOR_BASE
+  - {static} final int COLOR_DETALLE
+  --
+  + Carro()
+  + Carro(carril : int)
+  + nombre() = "Carro"
+  + tipo() = TipoVehiculo::CARRO
+  + anchoRelativo() = 0.72
+  + factorAspecto() = 1.85
+  + velocidadMaxima() = 62.0
+  + aceleracion() = 24.0
+  + frenado() = 36.0
+  + consumo() = 1.7
+  + agilidadCarril() = 3.4
+  + saludMaxima() = 100.0
+  + colorBase() : int
+  + colorDetalle() : int
+}
+
+class Moto {
+  - {static} final int COLOR_BASE
+  - {static} final int COLOR_DETALLE
+  --
+  + Moto()
+  + Moto(carril : int)
+  + nombre() = "Moto"
+  + tipo() = TipoVehiculo::MOTO
+  + anchoRelativo() = 0.42
+  + factorAspecto() = 1.70
+  + velocidadMaxima() = 68.0
+  + aceleracion() = 28.0
+  + frenado() = 30.0
+  + consumo() = 1.0
+  + agilidadCarril() = 4.8
+  + saludMaxima() = 75.0
+  + colorBase() : int
+  + colorDetalle() : int
+}
+
+class Camion {
+  - {static} final int COLOR_BASE
+  - {static} final int COLOR_DETALLE
+  --
+  + Camion()
+  + Camion(carril : int)
+  + nombre() = "Camion"
+  + tipo() = TipoVehiculo::CAMION
+  + anchoRelativo() = 0.92
+  + factorAspecto() = 2.90
+  + velocidadMaxima() = 52.0
+  + aceleracion() = 14.0
+  + frenado() = 22.0
+  + consumo() = 2.5
+  + agilidadCarril() = 2.0
+  + saludMaxima() = 160.0  <<overrides>>
+  + colorBase() : int
+  + colorDetalle() : int
+  + recibirImpacto(dano) = super.recibirImpacto(dano * 0.7) <<overrides>>
+  + recibirRoce(dano) = super.recibirRoce(dano * 0.7) <<overrides>>
+}
+
+class Rival {
+  + {static} final double ESCALA_IA = 1.7
+  - final int colorBase
+  - final int colorDetalle
+  - final double velocidadObjetivo
+  - final String nombreRival
+  - double ventaja
+  - boolean adelantado
+  - double temporizadorDecision
+  --
+  + Rival(carril, velocidadObjetivo, colorBase, colorDetalle, nombreRival)
+  + actualizarIA(dt, pista) : void
+  + setVentajaInicial(metros) : void
+  + avanzar(dt, velocidadJugador) : void
+  + obtenerPosicionPantalla(pista) : double
+  + getVentaja() : double
+  + isAdelantado() : boolean
+  + getVelocidadObjetivo() : double
+  - detienePeligro(pista, y) : boolean
+  - buscarCarrilLibre(pista, y) : int
+  + nombre() = nombreRival
+  + tipo() = TipoVehiculo::CARRO
+  + anchoRelativo() = 0.70
+  + factorAspecto() = 1.85
+  + velocidadMaxima() = velocidadObjetivo * 1.25
+  + aceleracion() = 16.0
+  + frenado() = 22.0
+  + consumo() = 0.0
+  + agilidadCarril() = 2.4
+  + saludMaxima() = 100.0
+  + colorBase() : int
+  + colorDetalle() : int
+}
+
+class Pista
+class Obstaculo
+class Recurso
+
+Vehiculo <|-- Carro
+Vehiculo <|-- Moto
+Vehiculo <|-- Camion
+Vehiculo <|-- Rival
+
+Vehiculo ..> Obstaculo : colisiona()
+Vehiculo ..> Recurso : tocaRecurso()
+Rival --> Pista : actualizarIA()
+
+note right of Vehiculo
+  12 métodos abstractos obligatorios.
+  El algoritmo de conducción vive aquí
+  (patrón Template Method) y delega
+  las características en las subclases.
+end note
+
+note bottom of Camion
+  Única subclase que extiende el
+  comportamiento de daño heredado
+  (reduce un 30 % el impacto y el roce).
+end note
+
+note bottom of Rival
+  consumo() = 0.0 → los rivales
+  no gastan combustible.
+  tipo() = CARRO → la PC se dibuja
+  como un carro.
+end note
+
+@enduml

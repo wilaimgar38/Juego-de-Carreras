@@ -1,0 +1,86 @@
+@startuml SecuenciaColision
+' Inicio de partida, colisión con un cono y fin de partida
+' Fuente de verdad: documentacion/UML.md (sección 8)
+
+skinparam shadowing false
+skinparam ParticipantBackgroundColor #E9F8EF
+skinparam ParticipantBorderColor #2F855A
+skinparam ActorBorderColor #B7791F
+skinparam SequenceGroupBackgroundColor #FFF6E5
+
+actor "Usuario" as U
+control "PanelMenu" as PM
+control "Configuracion" as CF
+control "VentanaJuego" as VJ
+control "Juego" as J
+control "PanelJuego" as PJ
+control "BucleJuego" as B
+participant "Vehiculo" as V
+control "GestorEfectos" as GE
+participant "Sonido" as S
+
+== 1. Menú → iniciar partida ==
+
+U -> PM : clic en «JUGAR»
+PM -> PM : leer modalidad, modo, dificultad, nombres, sonido
+PM -> CF : new Configuracion(...) <<throws ExcepcionJuego>>
+CF -> CF : validarNombre() (máx. 16 caracteres)
+PM -> PM : preferencias.guardar()
+PM -> VJ : iniciarPartida(configuracion)
+
+VJ -> J : new Juego(configuracion)
+J -> J : crearJugadores()\nnew Jugador(configuracion.crearVehiculo(i))
+J -> J : crearRivales()\nnew Rival(carril, velocidad, ...)
+J -> J : estado = CUENTA_ATRAS, cuentaAtras = 3.0
+J -> VJ : notificar(CUENTA_ATRAS, 1.0)
+
+VJ -> PJ : new PanelJuego(juego, this)
+PJ -> J : setObservador(this)
+PJ -> B : new BucleJuego(juego, teclados, alTerminar)
+PJ -> B : iniciar() → new Thread("bucle-juego")
+VJ -> VJ : tarjetas.show(raiz, "juego")
+PJ -> PJ : requestFocusInWindow()
+
+note over J : cuando cuentaAtras <= 0 → estado = JUGANDO
+
+== 2. Colisión con un cono ==
+
+loop cada fotograma
+  B -> J : actualizar(PASO, Controles[])
+  J -> V : actualizarFisica(dt, acelerar, frenar, izq, der)
+  note right of V : aceleracion(), velocidadMaxima(),\nconsumo(), agilidadCarril(),\nsaludMaxima() → implementación propia\nde cada subclase
+
+  J -> J : pista.actualizar() / generador.actualizar()
+  J -> J : detectarColisiones(dt)
+  J -> V : colisiona(obstaculo, izquierda, anchoCarril, y, alto)
+  V --> J : true
+
+  J -> J : obstaculo.golpear()\nvehiculo.recibirImpacto(DANO_CONO = 6.0)
+  J -> J : velocidad *= PENALIZACION_GOLPE (0.7)\nsacudida = 1.0
+  J -> GE : crearChispas(22) + crearHumo(8)
+  J -> PJ : notificar(EventoJuego.GOLPE, 1.0)
+  PJ -> VJ : alSucceder(...)
+  VJ -> S : Sonido.tocar(Tono.CHOQUE)
+end
+
+== 3. Fin de partida ==
+
+alt salud <= 0
+  J -> J : evaluarJugador(i) → FALLO_MECANICO
+else combustible <= 0 y velocidad < 1
+  J -> J : evaluarJugador(i) → SIN_COMBUSTIBLE
+else distancia >= 3500 m
+  J -> J : evaluarJugador(i) → META
+end
+
+J -> J : finalizarJugador(i, causa)\ncomprobarFin() / causaGlobal()
+J -> J : todosFinalizados() → finalizar(causa)
+J -> VJ : notificar(VICTORIA | DERROTA, 1.0)
+VJ -> VJ : programarResultado() — Timer 1600 ms
+VJ -> VJ : tarjetas.show(raiz, "resultado")
+U -> VJ : ENTER → mostrarResultado()\nR → reintentar() / M → menu()
+
+note over J : finalizar(CausaFin) solo actúa una vez:\nsi finalizada == true, retorna (guard clause)
+end note
+
+@enduml

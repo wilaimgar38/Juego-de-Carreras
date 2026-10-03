@@ -1,0 +1,72 @@
+@startuml DiagramaPaquetes
+' Diagrama de paquetes de "Gran Rally Turbo"
+' Fuente de verdad: documentacion/UML.md (sección 1)
+
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ArrowColor #4A5568
+
+package "carreras" {
+  class Main
+}
+
+package "carreras.vista" {
+  class VentanaJuego
+  class PanelMenu
+  class PanelJuego
+  class PanelResultado
+  class Dibujante
+  class Estilos
+}
+
+package "carreras.control" {
+  class BucleJuego
+  class EntradaTeclado
+}
+
+package "carreras.modelo" {
+  class Juego
+  class Jugador
+  class Vehiculo
+  class Rival
+  class Pista
+  class Generador
+  class Obstaculo
+  class Recurso
+  class GestorEfectos
+  class Efecto
+  class Configuracion
+  class Controles
+  class Marcador
+  interface ObservableJuego
+  class ExcepcionJuego
+  enum Modalidad
+  enum ModoJuego
+  enum Dificultad
+  enum TipoVehiculo
+  enum EstadoJuego
+  enum EventoJuego
+  enum CausaFin
+}
+
+package "carreras.util" {
+  class Preferencias
+  class Sonido
+  enum Tono
+}
+
+carreras ..> carreras.vista
+carreras.vista ..> carreras.modelo
+carreras.vista ..> carreras.control
+carreras.vista ..> carreras.util
+carreras.control ..> carreras.modelo
+carreras.modelo ..> carreras.util
+
+legend right
+  == Flecha ==> "usa"
+  El modelo NUNCA importa a la vista:
+  los retornos viajan por ObservableJuego.
+end legend
+
+@enduml

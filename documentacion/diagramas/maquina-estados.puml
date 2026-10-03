@@ -1,0 +1,55 @@
+@startuml MaquinaEstados
+' Máquina de estados de la partida
+' Fuente de verdad: documentacion/UML.md (sección 6)
+
+skinparam shadowing false
+skinparam linetype ortho
+
+[*] --> MENU : Main.main()
+
+state "MENU" as MENU
+state "CUENTA_ATRAS" as CUENTA
+state "JUGANDO" as JUGANDO
+state "PAUSA" as PAUSA
+state "VICTORIA" as VICTORIA
+state "DERROTA" as DERROTA
+
+MENU --> CUENTA : PanelMenu.iniciarPartida()\nJuego.iniciar()
+
+CUENTA --> JUGANDO : cuentaAtras <= 0
+
+state JUGANDO {
+  [*] --> Activo
+  state Activo
+}
+
+JUGANDO --> PAUSA : alternarPausa() / ESC / P
+PAUSA --> JUGANDO : reanudar() / ENTER
+
+JUGANDO --> VICTORIA : todosFinalizados()\ny causa == META
+JUGANDO --> DERROTA : todosFinalizados()\ny causa != META
+
+VICTORIA --> [*] : mostrarResultado()
+DERROTA --> [*] : mostrarResultado()
+
+JUGANDO --> MENU : abandonar() / M
+PAUSA --> MENU : abandonar()
+VICTORIA --> MENU : M
+DERROTA --> MENU : M
+
+VICTORIA --> CUENTA : reintentar() / R
+DERROTA --> CUENTA : reintentar() / R
+
+note right of JUGANDO
+  Estado controlado por el MODELO:
+  Juego.estado (enum EstadoJuego).
+  La vista solo consulta getEstado().
+end note
+
+note bottom of DERROTA
+  Causa global (causaGlobal()):
+  si algún jugador llegó a META → VICTORIA;
+  si no, se toma la causa del jugador 0.
+end note
+
+@enduml

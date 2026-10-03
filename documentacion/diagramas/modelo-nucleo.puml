@@ -1,0 +1,413 @@
+@startuml ModeloNucleo
+' Núcleo del modelo de dominio
+' Fuente de verdad: documentacion/UML.md (sección 3)
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+class Juego {
+  - {static} final double ANCHO_INICIAL = 900.0
+  - {static} final double ALTO_INICIAL = 640.0
+  - {static} final double PUNTOS_POR_METRO = 1.4
+  - {static} final double DANO_CONO = 6.0
+  - {static} final double VELOCIDAD_BASE_PC = 26.0
+  - {static} final double VELOCIDAD_POR_DIFICULTAD = 18.0
+  - {static} final double PENALIZACION_GOLPE = 0.7
+  - {static} final int[] COLORES_JUGADOR
+  - {static} final int[] COLORES_DETALLE_JUGADOR
+  - final Configuracion configuracion
+  - final ArrayList<Jugador> jugadores
+  - final Pista pista
+  - final Generador generador
+  - final GestorEfectos efectos
+  - final ArrayList<Rival> rivales
+  - final double[] distancias
+  - final boolean[] finalizadoPorJugador
+  - final CausaFin[] causaPorJugador
+  - EstadoJuego estado = MENU
+  - CausaFin causaFin = ABANDONO
+  - boolean finalizada
+  - double tiempo
+  - double cuentaAtras = 3.0
+  - double sacudida
+  - double[] ultimoGolpe
+  - ObservableJuego observador
+  --
+  + Juego(configuracion) <<throws ExcepcionJuego>>
+  + setObservador(observador) : void
+  + iniciar() : void
+  + actualizar(dt, acelerar, frenar, izquierda, derecha) : void
+  + actualizar(dt, controles : Controles[]) : void
+  + pausar() : void
+  + reanudar() : void
+  + alternarPausa() : void
+  + abandonar() : void
+  + redimensionar(ancho, alto) : void
+  + getJugadores() : ArrayList<Jugador>
+  + getNumeroJugadores() : int
+  + esMultijugador() : boolean
+  + getJugador() / getJugador(indice) : Jugador
+  + getVehiculo() / getVehiculo(indice) : Vehiculo
+  + getPista() : Pista
+  + getGenerador() : Generador
+  + getEfectos() : GestorEfectos
+  + getConfiguracion() : Configuracion
+  + getRivales() : ArrayList<Rival>
+  + getClasificacion() : ArrayList<Rival>
+  + getDistancia(indice) : double
+  + getDistanciaMeta() : double
+  + getProgreso(indice) : double
+  + getProgresoLeader() : double
+  + getPuesto(indice) : int
+  + getTotalCompetidores() : int
+  + getNumeroRivales() : int
+  + getNombreRival(indice) : String
+  + getDistanciaRival(indice) : double
+  + getPuestoRival(indice) : int
+  + getVelocidadRival(indice) : double
+  + rivalTermino(indice) : boolean
+  + getMeta() : double
+  + getTiempo() : double
+  + getPuntos(indice) : double
+  + getPuntosEnteros(indice) : int
+  + getCuentaAtras() : double
+  + getSacudida() : double
+  + getEstado() : EstadoJuego
+  + getCausaFin(indice) : CausaFin
+  + isFinalizado(indice) : boolean
+  --
+  - crearJugadores() : void
+  - distinguirJugadores() : void
+  - crearRivales() : void
+  - notificar(evento, intensidad) : void
+  - controlesDe(indice, controles) : Controles
+  - validarDelta(dt) : double
+  - ejecutarSimulacion(dt, controles) : void
+  - distanciaMedia() : double
+  - actualizarRivales(dt) : void
+  - velocidadLeader() : double
+  - detectarColisiones(dt) : void
+  - recogerRecursos() : void
+  - actualizarEfectosAmbientales() : void
+  - calcularPuntuacion(dt) : void
+  - factorPuntuacion(indice) : double
+  - evaluarJugador(indice) : CausaFin
+  - comprobarFin() : void
+  - finalizarJugador(indice, causa) : void
+  - todosFinalizados() : boolean
+  - causaGlobal() : CausaFin
+  - finalizar(causa) : void
+}
+
+class Jugador {
+  - final Vehiculo vehiculo
+  - final String nombrePiloto
+  - final int numero
+  - double puntos
+  - int racha
+  - int mejorRacha
+  - int golpesRecibidos
+  - int adelantamientos
+  - int recursos
+  --
+  + Jugador(vehiculo, nombrePiloto) <<throws ExcepcionJuego>>
+  + Jugador(vehiculo, nombrePiloto, numero) <<throws ExcepcionJuego>>
+  + getNumero() : int
+  + getEtiqueta() : String
+  + getVehiculo() : Vehiculo
+  + getNombrePiloto() : String
+  + sumarRacha(cantidad) : void
+  + registrarImpacto(dano) : void
+  + registrarAdelantamiento() : void
+  + registrarRecurso() : void
+  + sumarPuntos(cantidad) : void
+  + getPuntos() : double
+  + getRacha() : int
+  + getMejorRacha() : int
+  + getGolpesRecibidos() : int
+  + getAdelantamientos() : int
+  + getRecursos() : int
+  + getCarril() : int
+  + getVelocidad() : double
+  + getVelocidadKmh() : double
+  + getSalud() : double
+  + getCombustible() : double
+  + obtenerVelocidadRelativa() : double
+  + obtenerCentroX(izquierda, anchoCarril) : double
+  + obtenerAnchoPx(anchoCarril) : double
+  + obtenerAltoPx(anchoCarril) : double
+  + isAveriado() : boolean
+  + nombreVehiculo() : String
+}
+
+class Pista {
+  + {static} final double ESCALA = 6.0
+  - final ArrayList<Obstaculo> obstaculos
+  - final ArrayList<Recurso> recursos
+  - double desplazamiento
+  - double anchoVista
+  - double altoVista
+  - double anchoCarril
+  - double anchura
+  - double izquierda
+  - long obstaculosGenerados
+  - long recursosGenerados
+  --
+  + Pista(anchoVista, altoVista)
+  + redimensionar(ancho, alto) : void
+  + actualizar(dt, velocidadJugador) : void
+  + agregarObstaculo(obstaculo) : void
+  + agregarRecurso(recurso) : void
+  + limpiar() : void
+  + carrilOcupado(carril, desde, hasta) : boolean
+  + carrilesLibres(desde, hasta) : int
+  + getPosicionJugador() / getPosicionJugador(indice) : double
+  + getObstaculos() : ArrayList<Obstaculo>
+  + getRecursos() : ArrayList<Recurso>
+  + getDesplazamiento() : double
+  + getAnchoCarril() / getAnchura() / getIzquierda() : double
+  + getAnchoVista() / getAltoVista() : double
+  + getObstaculosGenerados() / getRecursosGenerados() : long
+}
+
+class Generador {
+  - {static} final double APARICION_CIMA = -220.0
+  - final Pista pista
+  - final Dificultad dificultad
+  - final ModoJuego modo
+  - double temporizadorObstaculo
+  - double temporizadorRecurso
+  - double dificultadDinamica
+  --
+  + Generador(pista, dificultad, modo) <<throws IllegalArgumentException>>
+  + actualizar(dt, velocidadJugador, distancia) : void
+  + getDificultadDinamica() : double
+  - calcularIntervalo() : double
+  - generarObstaculo() : void
+  - generarRecurso() : void
+  - elegirCarrilLibre() : int
+  - elegirCarrilLibre(excepto) : int
+}
+
+class Obstaculo {
+  - {static} final double VELOCIDAD_PROPIA = 0.0
+  - {static} final double ANCHO_RELATIVO = 0.34
+  - {static} final double FACTOR_ASPECTO = 1.5
+  - final int carril
+  - final int colorBase
+  - final int colorDetalle
+  - final double anchoRelativo
+  - final double factorAspecto
+  - double posicionY
+  - boolean activo
+  --
+  - Obstaculo(carril, colorBase, colorDetalle, posicionY)
+  + {static} crearCono(carril, posicionY) : Obstaculo
+  + avanzar(dt, velocidadJugador) : void
+  + haSalido(altoVista) : boolean
+  + golpear() : void
+  + obtenerCentroX(izquierda, anchoCarril) : double
+  + obtenerAnchoPx(anchoCarril) : double
+  + obtenerAltoPx(anchoCarril) : double
+  + getCarril() : int
+  + getPosicionY() / setPosicionY(y) : double / void
+  + estaActivo() : boolean
+  + obtenerColorBase() / obtenerColorDetalle() : Color
+  + getAnchoRelativo() / getFactorAspecto() : double
+}
+
+class Recurso {
+  - final int carril
+  - double posicionY
+  - double animacion
+  - boolean activo
+  --
+  + Recurso(carril, posicionY)
+  + avanzar(dt, velocidadJugador) : void
+  + haSalido(altoVista) : boolean
+  + recolectar() : void
+  + obtenerCentroX(izquierda, anchoCarril) : double
+  + getCarril() : int
+  + getPosicionY() / getAnimacion() : double
+  + estaActivo() : boolean
+}
+
+class GestorEfectos {
+  - {static} final int MAXIMO = 260
+  - final ArrayList<Efecto> efectos
+  --
+  + crearChispas(x, y, cantidad, color) : void
+  + crearHumo(x, y, cantidad) : void
+  + crearResplandor(x, y, color, intensidad) : void
+  + actualizar(dt) : void
+  + limpiar() : void
+  + getEfectos() : ArrayList<Efecto>
+  - recortar() : void
+}
+
+class Efecto {
+  - final double x
+  - final double y
+  - final double vx
+  - final double vy
+  - double vida
+  - final double vidaMaxima
+  - final double tamano
+  - final Color color
+  - final boolean gravedad
+  --
+  + Efecto(x, y, vx, vy, vida, tamano, color, gravedad)
+  + avanzar(dt) : void
+  + estaVivo() : boolean
+  + getAlfa() : float
+  + getX() / getY() / getVx() / getVy() / getTamano() : double
+  + getColor() : Color
+  + isGravedad() : boolean
+}
+
+class Configuracion {
+  + {static} final int LONGITUD_MAXIMA_NOMBRE = 16
+  - final TipoVehiculo tipoVehiculo
+  - final TipoVehiculo tipoVehiculo2
+  - final ModoJuego modo
+  - final Modalidad modalidad
+  - final Dificultad dificultad
+  - final boolean sonido
+  - final String nombrePiloto
+  - final String nombrePiloto2
+  --
+  + Configuracion(tipo, modo, dificultad, sonido, nombre) <<throws ExcepcionJuego>>
+  + Configuracion(tipo, tipo2, modo, modalidad, dificultad, sonido, nombre, nombre2) <<throws ExcepcionJuego>>
+  + {static} desdePreferencias(preferencias) : Configuracion
+  + crearVehiculo() / crearVehiculo(indice) : Vehiculo
+  + getNombrePiloto(indice) : String
+  + resumen() : String
+  + getters() : TipoVehiculo / ModoJuego / Modalidad / Dificultad / String / boolean
+  - validarNombre(nombre, indice) : void
+}
+
+class Controles {
+  + {static} final Controles NADA
+  - final boolean acelerar
+  - final boolean frenar
+  - final boolean carrilIzquierda
+  - final boolean carrilDerecha
+  --
+  + Controles(acelerar, frenar, carrilIzquierda, carrilDerecha)
+  + isAcelerar() : boolean
+  + isFrenar() : boolean
+  + isCarrilIzquierda() : boolean
+  + isCarrilDerecha() : boolean
+  + estaQuieto() : boolean
+}
+
+class Marcador {
+  - {static} final String NOMBRE_ARCHIVO = "puntajes.dat"
+  - final Path archivo
+  - final Map<String,Integer> mejores
+  - final Map<String,String> pilotos
+  --
+  + Marcador()
+  + Marcador(archivo)
+  + cargar() : void
+  + guardar() : void
+  + registrar(modo, puntos, piloto) : boolean
+  + getMejor(modo) : int
+  + getPiloto(modo) : String
+  + reiniciar() : void
+  + getMejores() : Map<String,Integer>
+  - cerrar(lector) : void
+  - cerrarEscritor(escritor) : void
+}
+
+interface ObservableJuego {
+  + alSucceder(evento : EventoJuego, intensidad : double) : void
+}
+
+class ExcepcionJuego {
+  - {static} final long serialVersionUID = 1L
+  + ExcepcionJuego(mensaje : String)
+  + ExcepcionJuego(mensaje : String, causa : Throwable)
+}
+
+class Preferencias {
+  - final Path archivo
+  - final Properties propiedades
+  - boolean guardadas
+  --
+  + Preferencias(archivo)
+  + cargar() : void
+  + guardar() : void
+  + get(clave, valorPorDefecto) : String
+  + set(clave, valor) : void
+  + getEntero(clave, valorPorDefecto) : int
+  + setEntero(clave, valor) : void
+  + isGuardadas() : boolean
+}
+
+abstract class Vehiculo
+class Rival
+class TipoVehiculo
+class Modalidad
+class ModoJuego
+class Dificultad
+enum EstadoJuego
+enum EventoJuego
+enum CausaFin
+
+Juego o-- Configuracion : configuracion
+Juego *-- Jugador : jugadores
+Juego *-- Pista : pista
+Juego *-- Generador : generador
+Juego *-- GestorEfectos : efectos
+Juego o-- Rival : rivales
+Juego ..> Controles : crea
+Juego ..> ObservableJuego : observador
+Juego ..> EstadoJuego
+Juego ..> EventoJuego
+Juego ..> CausaFin
+Juego ..> TipoVehiculo
+
+Jugador *-- Vehiculo : vehiculo
+
+Pista *-- Obstaculo : obstaculos
+Pista *-- Recurso : recursos
+
+Generador --> Pista : pista
+Generador --> Dificultad
+Generador --> ModoJuego
+Generador ..> Obstaculo : crearCono()
+Generador ..> Recurso : new
+
+GestorEfectos *-- Efecto : efectos
+
+Rival --|> Vehiculo
+Vehiculo ..> Obstaculo : colisiona()
+Vehiculo ..> Recurso : tocaRecurso()
+
+TipoVehiculo ..> Vehiculo : crear()
+TipoVehiculo ..> Carro
+TipoVehiculo ..> Moto
+TipoVehiculo ..> Camion
+class Carro
+class Moto
+class Camion
+
+Configuracion ..> Preferencias : desdePreferencias()
+Configuracion --> TipoVehiculo
+Configuracion --> ModoJuego
+Configuracion --> Modalidad
+Configuracion --> Dificultad
+Configuracion ..> Vehiculo : crearVehiculo()
+
+ExcepcionJuego --|> Exception
+
+note bottom of Juego
+  máxima: 2 jugadores humanos + 1 rival.
+  Crea y posee el mundo de la carrera
+  (pista, generador, efectos) y decide
+  el fin de la partida.
+end note
+
+@enduml

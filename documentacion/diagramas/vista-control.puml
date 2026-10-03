@@ -1,0 +1,343 @@
+@startuml VistaYControl
+' Paquetes de vista (Swing) y control (bucle + teclado)
+' Fuente de verdad: documentacion/UML.md (sección 4)
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+class VentanaJuego {
+  - {static} final String TARJETA_MENU
+  - {static} final String TARJETA_JUEGO
+  - {static} final String TARJETA_RESULTADO
+  - final CardLayout tarjetas
+  - final JPanel raiz
+  - final PanelMenu menu
+  - final PanelResultado resultado
+  - final Marcador marcador
+  - final Preferencias preferencias
+  - PanelJuego panelJuego
+  - Configuracion configuracionActual
+  - boolean sonidoActivo = true
+  - Timer temporizadorResultado
+  --
+  + VentanaJuego()
+  + getJuegoActual() : Juego
+  + iniciarPartida(configuracion) : void
+  + reintentar() : void
+  + mostrarMenu() : void
+  + mostrarResultado() : void
+  + getRecordDe(juego, indice) : int
+  + borrarRecords() : void
+  + getRecords() : int[]
+  + reproducirEvento(evento) : void
+  + instalarAtajosGlobales() : void
+  + alSucceder(evento, intensidad) : void
+  - claveRecord(juego, indice) : String
+  - programarResultado() : void
+  - mostrarError(mensaje) : void
+  - detenerPartida() : void
+  - cerrar() : void
+  - configuracionPorDefecto() : Configuracion
+}
+
+class PanelMenu {
+  - {static} final int H_CARDS = 176
+  - {static} final int H_OPCION = 46
+  - {static} final int H_MODALIDAD = 56
+  - {static} final int H_CAMPO = 36
+  - {static} final int H_BOTON = 48
+  - {static} final int SEPARACION = 34
+  - final VentanaJuego ventana
+  - final Preferencias preferencias
+  - final TarjetaVehiculo[] tarjetas
+  - final Opcion[] opcionesModalidad
+  - final Opcion[] opcionesVehiculo2
+  - final Opcion[] opcionesModo
+  - final Opcion[] opcionesDificultad
+  - final JTextField campoPiloto
+  - final JTextField campoPiloto2
+  - final JCheckBox casillaSonido
+  - final JLabel etiquetaError
+  - final BotonPersonalizado botonJugar
+  - final BotonPersonalizado botonBorrar
+  - int yTarjetas
+  - int yModalidad
+  - int yVehiculo2
+  - int yModo
+  - int yDificultad
+  - int yNombres
+  --
+  + PanelMenu(ventana, preferencias)
+  + paintComponent(g) : void
+  + modalidadSeleccionada() : Modalidad
+  + vehiculoSeleccionado() : TipoVehiculo
+  + vehiculo2Seleccionado() : TipoVehiculo
+  + modoSeleccionado() : ModoJuego
+  + dificultadSeleccionada() : Dificultad
+  - reorganizar() : void
+  - iniciarPartida() : void
+  - mostrarError(mensaje) : void
+}
+
+class PanelJuego {
+  - {static} final Color[] COLORES_JUGADOR
+  - final Juego juego
+  - final VentanaJuego ventana
+  - final List<EntradaTeclado> teclados
+  - BucleJuego bucle
+  - double faseRuedas
+  --
+  + PanelJuego(juego, ventana)
+  + iniciar() : void
+  + getJuego() : Juego
+  + getTeclados() : List<EntradaTeclado>
+  + detener() : void
+  + addNotify() : void
+  + paintComponent(g) : void
+  + alSucceder(evento, intensidad) : void
+  - manejarTecla(codigo) : void
+  - limpiarTeclados() : void
+  - dibujarEscena(g) : void
+  - dibujarHud(g) : void
+  - dibujarAvisos(g) : void
+}
+
+class PanelResultado {
+  - {static} final Color[] COLORES_JUGADOR
+  - final VentanaJuego ventana
+  - Juego juego
+  - boolean nuevoRecord
+  --
+  + PanelResultado(ventana)
+  + mostrar(juego, nuevoRecord) : void
+  + getJuego() : Juego
+  + paintComponent(g) : void
+  - dibujarPc(g) : void
+  - recordDe(indice) : int
+  - dibujarJugador(g, x, y, ancho, alto) : void
+}
+
+class BucleJuego implements Runnable {
+  + {static} final int FOTOGRAMAS = 60
+  + {static} final double PASO = 1/60
+  - final Juego juego
+  - final List<EntradaTeclado> teclados
+  - final Runnable alTerminar
+  - final List<Runnable> alPintar
+  - volatile boolean activo
+  - volatile boolean terminado
+  - Thread hilo
+  --
+  + BucleJuego(juego, teclado, alTerminar)
+  + BucleJuego(juego, teclados, alTerminar)
+  + addAlPintar(accion) : void
+  + iniciar() : void
+  + detener() : void
+  + isActivo() : boolean
+  + isTerminado() : boolean
+  + run() : void
+  - leerControles() : Controles[]
+  - pintar() : void
+}
+
+class EntradaTeclado implements KeyListener {
+  - final int[] teclasAcelerar
+  - final int[] teclasFrenar
+  - final int[] teclasCarrilIzquierda
+  - final int[] teclasCarrilDerecha
+  - final String etiqueta
+  - final Set<Integer> teclas
+  - final Set<Integer> pulsacionesNuevas
+  --
+  + EntradaTeclado()
+  + EntradaTeclado(acelerar, frenar, izquierda, derecha, etiqueta)
+  + {static} jugadorUno() : EntradaTeclado
+  + {static} jugadorDos() : EntradaTeclado
+  + keyPressed(evento) : void
+  + keyReleased(evento) : void
+  + keyTyped(evento) : void
+  + acelerar() / frenar() / izquierda() / derecha() : boolean
+  + tomarCarrilIzquierda() / tomarCarrilDerecha() : boolean
+  + pausa() / salir() / reiniciar() : boolean
+  + soltar(codigo) / limpiar() : void
+}
+
+class Dibujante {
+  + {static} paisaje(g, ancho, alto, distancia, velocidadRelativa) : void
+  + {static} carretera(g, pista, distancia, hayMeta) : void
+  + {static} vehiculo(g, vehiculo, pista, y, faseRuedas, faros) : void
+  + {static} carro / moto / camion(g, x, y, ancho, alto, base, detalle, ...) : void
+  + {static} obstaculo(g, obstaculo, pista) : void
+  + {static} recurso(g, recurso, pista) : void
+  + {static} efecto(g, efecto) : void
+  + {static} vistaPrevia(g, tipo, x, y, ancho, alto) : void
+  - {static} cono(g, x, y, ancho, alto) : void
+}
+
+class Estilos {
+  + {static} final int ANCHO = 940
+  + {static} final int ALTO = 800
+  + {static} Color FONDO .. TEXTO_TENUE (19 constantes)
+  + {static} Font FUENTE_TITULO .. FUENTE_BOTON (7 constantes)
+  + {static} suavizar(g) : void
+  + {static} degradadoVertical(x, y, alto, arriba, abajo) : GradientPaint
+  + {static} panel(g, x, y, ancho, alto, radio, color, alfa) : void
+  + {static} texto / textoCentro / textoDerecha(...) : void
+  + {static} barra(g, x, y, ancho, alto, proporcion, color) : void
+  + {static} boton(texto, fondo, colorTexto) : JButton
+}
+
+class Preferencias
+class Marcador
+class Sonido
+class Juego
+class Vehiculo
+class Pista
+class Obstaculo
+class Recurso
+class Efecto
+class Configuracion
+class Controles
+class Modalidad
+class ModoJuego
+class Dificultad
+class TipoVehiculo
+enum EventoJuego
+
+class "PanelMenu.TarjetaVehiculo" as TarjetaVehiculo {
+  - {static} final String[] ETIQUETAS
+  - final TipoVehiculo tipo
+  - final double[] estadisticas
+  - boolean seleccionada
+  - boolean sobre
+  --
+  + TarjetaVehiculo(tipo)
+  + getTipo() / isSeleccionada() / setSeleccionada() / setSobre()
+  + paintComponent(g) : void
+  - {static} calcularEstadisticas(tipo) : double[]
+}
+
+class "PanelMenu.Opcion" as Opcion {
+  - final String titulo
+  - final String descripcion
+  - final Runnable accion
+  - boolean seleccionada
+  - boolean sobre
+  --
+  + Opcion(titulo, descripcion, accion)
+  + seleccionar() : void
+  + paintComponent(g) : void
+}
+
+class "PanelMenu.BotonPersonalizado" as BotonPersonalizado {
+  - final String titulo
+  - final Color fondo
+  - final Color colorTexto
+  - boolean sobre
+  --
+  + BotonPersonalizado(titulo, fondo, colorTexto)
+  + setSobre(sobre) : void
+  + paintComponent(g) : void
+}
+
+class "PanelMenu.RatónBoton" as RatonBoton {
+  - final BotonPersonalizado boton
+  - final Runnable accion
+  + mousePressed / mouseEntered / mouseExited
+}
+
+class "PanelMenu.RatónOpcion" as RatonOpcion {
+  - final Opcion opcion
+  + mousePressed / mouseEntered / mouseExited
+}
+
+class "PanelResultado.Raton" as RatonResultado {
+  - final BotonPersonalizado boton
+  - final Runnable accion
+  + mousePressed / mouseEntered / mouseExited
+}
+
+class "PanelJuego.Dibujable" as Dibujable {
+  - final double y
+  - final Object objeto
+  + getY() / getObjeto()
+}
+
+class JFrame
+class JPanel
+class JComponent
+class CardLayout
+class Timer
+class MouseAdapter
+interface Runnable
+interface KeyListener
+
+VentanaJuego --|> JFrame
+PanelMenu --|> JPanel
+PanelJuego --|> JPanel
+PanelResultado --|> JPanel
+TarjetaVehiculo --|> JComponent
+Opcion --|> JComponent
+BotonPersonalizado --|> JComponent
+RatonBoton --|> MouseAdapter
+RatonOpcion --|> MouseAdapter
+RatonResultado --|> MouseAdapter
+
+VentanaJuego *-- CardLayout
+VentanaJuego *-- PanelMenu
+VentanaJuego *-- PanelResultado
+VentanaJuego o-- PanelJuego
+VentanaJuego --> Marcador
+VentanaJuego --> Preferencias
+VentanaJuego ..> Timer
+VentanaJuego ..> Sonido
+VentanaJuego ..> Juego
+VentanaJuego ..> EventoJuego
+
+PanelMenu --> VentanaJuego
+PanelMenu *-- TarjetaVehiculo
+PanelMenu *-- Opcion
+PanelMenu *-- BotonPersonalizado
+PanelMenu ..> RatonBoton
+PanelMenu ..> RatonOpcion
+PanelMenu ..> Configuracion
+PanelMenu --> Preferencias
+PanelMenu ..> Modalidad
+
+TarjetaVehiculo --> TipoVehiculo
+TarjetaVehiculo ..> Dibujante
+Opcion --> Runnable
+RatonBoton --> Runnable
+RatonResultado --> Runnable
+
+PanelJuego *-- Dibujable
+PanelJuego o-- BucleJuego
+PanelJuego *-- EntradaTeclado
+PanelJuego --> Juego
+PanelJuego --> VentanaJuego
+PanelJuego ..> Dibujante
+PanelJuego ..> Estilos
+
+PanelResultado --> VentanaJuego
+PanelResultado *-- BotonPersonalizado
+PanelResultado ..> RatonResultado
+
+BucleJuego --> Juego
+BucleJuego --> EntradaTeclado
+BucleJuego ..> Controles
+BucleJuego --> Runnable
+
+Dibujante ..> Vehiculo
+Dibujante ..> Obstaculo
+Dibujante ..> Recurso
+Dibujante ..> Efecto
+Dibujante ..> Pista
+
+note right of PanelJuego
+  paintComponent() dibuja el estado
+  actual del modelo: nunca modifica
+  el juego (separación vista/modelo).
+end note
+
+@enduml

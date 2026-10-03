@@ -1,0 +1,77 @@
+@startuml SecuenciaBucleJuego
+' Bucle de juego de paso fijo a 60 FPS
+' Fuente de verdad: documentacion/UML.md (sección 7)
+
+skinparam shadowing false
+skinparam ParticipantBackgroundColor #E8F4FF
+skinparam ParticipantBorderColor #2B6CB0
+skinparam ActorBorderColor #B7791F
+skinparam SequenceGroupBackgroundColor #EEF6EE
+
+actor "Usuario (teclado)" as U
+participant "EntradaTeclado" as E
+participant "BucleJuego\n(hilo daemon)" as B
+control "Juego" as J
+participant "PanelJuego (EDT)" as V
+participant "Dibujante" as D
+participant "Sonido" as S
+
+== Entrada de teclado ==
+
+U -> E : keyPressed(VK_UP / VK_W / VK_I ...)
+E -> E : teclas.add(codigo)\npulsacionesNuevas.add(codigo)
+note right of E : evento.consume()
+
+== Bucle de 60 FPS ==
+
+loop cada fotograma (paso fijo = 1/60 s)
+  B -> E : acelerar(), frenar(),\ntomarCarrilIzquierda(), tomarCarrilDerecha()
+  E --> B : boolean
+  B -> B : new Controles(...) por jugador\n(o Controles.NADA si no pulsa)
+  B -> J : actualizar(PASO, Controles[])
+
+  J -> J : validarDelta(dt) — limita a 0.1
+  alt estado == CUENTA_ATRAS
+    J -> J : cuentaAtras -= dt
+    J -> V : notificar(CUENTA_ATRAS, 1.0)
+  else estado == JUGANDO
+    J -> J : ejecutarSimulacion(dt, controles)
+    J -> J : actualizarFisica() de cada Vehiculo\n(métodos abstractos: polimorfismo)
+    J -> J : actualizarRivales(dt)\npista.actualizar(dt) / generador.actualizar(dt)
+    J -> J : detectarColisiones(dt)\nrecogerRecursos() / efectos.actualizar(dt)
+    J -> J : distancias += velocidad * dt\ncalcularPuntuacion(dt) / comprobarFin()
+
+    opt ocurre un evento (golpe, recurso, adelantamiento, meta)
+      J -> V : alSucceder(evento, intensidad)
+      V -> V : delega en ventana.alSucceder(...)
+      V -> S : Sonido.tocar(Tono.CHOQUE | RECOLECTAR | ...)
+      opt evento == VICTORIA | DERROTA
+        V -> V : programarResultado() — Timer 1600 ms
+      end
+    end
+  end
+
+  B -> V : addAlPintar(repaint) → SwingUtilities.invokeLater
+  V -> D : paisaje(), carretera()
+  V -> D : vehiculo(g, vehiculo, pista, y, fase, faros)
+  V -> D : obstaculo(), recurso(), efecto()
+  note over B : Thread.sleep(8)\nel resto del tiempo se acumula
+end
+
+== Fin de la partida ==
+
+alt juego.isFinalizado()
+  B -> B : terminado = true; break
+  B -> V : alTerminar.run() — desde finally
+end
+
+note bottom of B
+  Salvaguardas:
+  · dt limitado a 0.25 s en el bucle
+  · máximo 6 pasos de simulación por ciclo
+  · hilo daemon: no bloquea el cierre
+  · catch (InterruptedException) restaura
+    la bandera de interrupción
+end note
+
+@enduml

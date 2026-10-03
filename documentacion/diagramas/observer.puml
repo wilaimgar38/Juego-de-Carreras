@@ -1,0 +1,61 @@
+@startuml Observador
+' Patrón Observer: el modelo no conoce Swing
+' Fuente de verdad: documentacion/UML.md (sección 5)
+
+skinparam shadowing false
+skinparam linetype ortho
+
+class Juego {
+  - ObservableJuego observador
+  + setObservador(observador) : void
+  - notificar(evento, intensidad) : void
+}
+
+interface ObservableJuego {
+  + alSucceder(evento : EventoJuego, intensidad : double) : void
+}
+
+class PanelJuego {
+  + alSucceder(evento, intensidad) : void
+}
+
+class VentanaJuego {
+  + alSucceder(evento, intensidad) : void
+  - reproducirEvento(evento) : void
+  - programarResultado() : void
+}
+
+class Sonido {
+  + {static} tocar(tono : Tono) : void
+}
+
+enum EventoJuego {
+  GOLPE
+  RECOLECTADO
+  ADELANTAMIENTO
+  VICTORIA
+  DERROTA
+  CUENTA_ATRAS
+  SALTO
+}
+
+Juego --> ObservableJuego : observador
+ObservableJuego <|.. PanelJuego
+ObservableJuego <|.. VentanaJuego
+PanelJuego ..> VentanaJuego : delega
+VentanaJuego ..> Sonido
+Juego ..> EventoJuego
+
+note on link
+  register:
+  PanelJuego → juego.setObservador(this)
+end note
+
+note bottom of Juego
+  notificar() envuelve la llamada al
+  observador en un try/catch:
+  si falla, pone observador = null
+  y la partida continúa.
+end note
+
+@enduml
